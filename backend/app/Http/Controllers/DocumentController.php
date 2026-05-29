@@ -6,10 +6,10 @@ use App\Http\Requests\StoreDocumentRequest;
 use App\Http\Resources\DocumentResource;
 use App\Models\Document;
 use App\Models\User;
+use App\Support\CloudinaryStorage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * DocumentController — upload + verify identity documents.
@@ -70,7 +70,7 @@ class DocumentController extends Controller
      */
     public function store(StoreDocumentRequest $request): JsonResponse
     {
-        $path = $request->file('file')->store('documents', 'public');
+        $path = CloudinaryStorage::store($request->file('file'), 'documents');
 
         $document = Document::create([
             'user_id'    => $request->user()->id,
@@ -118,10 +118,8 @@ class DocumentController extends Controller
         $allowed = $document->user_id === $user->id || $user->hasStaffAccess();
         abort_unless($allowed, 403, 'Action non autorisée.');
 
-        // Best-effort cleanup of the file from disk.
-        if ($document->file_path && Storage::disk('public')->exists($document->file_path)) {
-            Storage::disk('public')->delete($document->file_path);
-        }
+        // Best-effort cleanup (local file or Cloudinary asset).
+        CloudinaryStorage::delete($document->file_path);
 
         $document->delete();
 

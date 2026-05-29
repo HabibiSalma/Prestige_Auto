@@ -35,4 +35,16 @@ return [
         ],
     ],
 
+    /*
+    | Cloudinary — used for persistent media storage in production. When
+    | CLOUDINARY_URL is set, uploaded avatars / vehicle photos / documents
+    | are pushed to Cloudinary (so they survive Render's ephemeral disk).
+    | When it is empty (local dev), uploads fall back to the local public
+    | disk automatically. See App\Support\CloudinaryStorage.
+    | Format: cloudinary://<api_key>:<api_secret>@<cloud_name>
+    */
+    'cloudinary' => [
+        'url' => env('CLOUDINARY_URL'),
+    ],
+
 ];

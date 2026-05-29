@@ -63,7 +63,7 @@ export default function Profile() {
             <div className="d-flex justify-content-center">
               <Avatar
                 name={user.name}
-                src={user.avatar ? `${apiHost()}/storage/${user.avatar}` : null}
+                src={user.avatar_url || null}
                 size={120}
               />
             </div>
@@ -143,9 +143,4 @@ function initial(user) {
     licence_number: user.licence_number,
     licence_expires_at: user.licence_expires_at,
   }
-}
-
-function apiHost() {
-  const base = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
-  return base.replace(/\/api\/?$/, '')
 }

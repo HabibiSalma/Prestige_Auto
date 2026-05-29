@@ -8,10 +8,10 @@ use App\Http\Resources\VehicleResource;
 use App\Models\User;
 use App\Models\Vehicle;
 use App\Models\VehicleImage;
+use App\Support\CloudinaryStorage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * VehicleController — public catalogue + staff-only CRUD.
@@ -139,7 +139,7 @@ class VehicleController extends Controller
 
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $i => $file) {
-                $path = $file->store('vehicles', 'public');
+                $path = CloudinaryStorage::store($file, 'vehicles');
                 VehicleImage::create([
                     'vehicle_id' => $vehicle->id,
                     'image_path' => $path,
@@ -252,14 +252,10 @@ class VehicleController extends Controller
         abort_unless($image->vehicle_id === $vehicle->id, 404);
 
         $wasMain = $image->is_main;
-        $path    = $image->image_path;
 
-        // Only attempt to delete the physical file if it's a local path
-        // (the seeder uses absolute URLs to placeholder images).
-        if ($path && ! str_starts_with($path, 'http')
-            && Storage::disk('public')->exists($path)) {
-            Storage::disk('public')->delete($path);
-        }
+        // Best-effort cleanup: removes the local file OR the Cloudinary asset,
+        // and safely ignores external placeholder URLs (e.g. the seeder's).
+        CloudinaryStorage::delete($image->image_path);
 
         $image->delete();
 

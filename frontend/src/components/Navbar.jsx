@@ -94,7 +94,7 @@ export default function Navbar() {
                     data-bs-toggle="dropdown"
                     aria-expanded="false"
                   >
-                    <Avatar name={user.name} src={user.avatar ? `${apiHost()}/storage/${user.avatar}` : null} />
+                    <Avatar name={user.name} src={user.avatar_url || null} />
                     <span className="d-none d-md-inline small fw-semibold">
                       {user.name.split(' ')[0]}
                     </span>
@@ -133,10 +133,4 @@ export default function Navbar() {
       </div>
     </nav>
   )
-}
-
-/** Compute the API host (without /api) so we can build /storage URLs. */
-function apiHost() {
-  const base = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
-  return base.replace(/\/api\/?$/, '')
 }

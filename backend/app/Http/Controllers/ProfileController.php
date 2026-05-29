@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateProfileRequest;
 use App\Http\Resources\UserResource;
+use App\Support\CloudinaryStorage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * ProfileController — endpoints the authenticated user uses to
@@ -39,11 +39,10 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
-        if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
-            Storage::disk('public')->delete($user->avatar);
-        }
+        // Remove the previous avatar (local file or Cloudinary asset).
+        CloudinaryStorage::delete($user->avatar);
 
-        $path = $request->file('avatar')->store('avatars', 'public');
+        $path = CloudinaryStorage::store($request->file('avatar'), 'avatars');
         $user->update(['avatar' => $path]);
 
         return new UserResource($user->fresh('agency'));

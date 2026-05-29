@@ -20,15 +20,24 @@ return [
     'allowed_methods' => ['*'],
 
     /*
-    | The list of frontends allowed to call us. Wildcards are NOT allowed
-    | when supports_credentials is true, so list each origin explicitly.
+    | The list of frontends allowed to call us. In production set FRONTEND_URL
+    | to the deployed Vercel domain (e.g. https://prestige-auto.vercel.app);
+    | the two localhost entries keep the Vite dev server working.
     */
-    'allowed_origins' => [
+    'allowed_origins' => array_values(array_filter([
+        env('FRONTEND_URL'),
         'http://localhost:5173',
         'http://127.0.0.1:5173',
-    ],
+    ])),
 
-    'allowed_origins_patterns' => [],
+    /*
+    | Also allow Vercel preview deployments (the auto-generated
+    | *.vercel.app URLs for each branch/PR) to call the API without a
+    | re-deploy. Safe here because we use bearer tokens, not cookies.
+    */
+    'allowed_origins_patterns' => [
+        '#^https://.*\.vercel\.app$#',
+    ],
 
     'allowed_headers' => ['*'],
 
