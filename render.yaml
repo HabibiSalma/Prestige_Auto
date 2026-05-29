@@ -1,0 +1,105 @@
+# =============================================================================
+# Render Blueprint — Prestige Auto (Laravel 12 API + PostgreSQL)
+#
+# Scope: this file provisions the BACKEND only. The React/Vite frontend is
+# deployed separately on Vercel (see DEPLOYMENT.md).
+#
+# Placement: must live at the REPOSITORY ROOT (it does — alongside backend/
+# and frontend/). Render reads it when you create a Blueprint instance.
+#
+# Path model: rootDir = backend, so dockerfilePath/dockerContext are resolved
+# RELATIVE TO backend/ (Render's documented monorepo behaviour).
+# =============================================================================
+
+databases:
+  - name: prestige-auto-db
+    databaseName: prestige_auto
+    user: prestige_auto
+    plan: free
+    region: oregon          # must match the web service region below
+    ipAllowList: []         # internal-only (the API connects over the private network)
+
+services:
+  - type: web
+    name: prestige-auto-api
+    runtime: docker
+    plan: free
+    region: oregon          # keep identical to the database region
+    branch: main
+    rootDir: backend                 # the Laravel app lives in /backend
+    dockerfilePath: ./Dockerfile     # = backend/Dockerfile (relative to rootDir)
+    dockerContext: .                 # build context = backend/
+    healthCheckPath: /up             # Laravel's built-in health route
+    autoDeploy: true
+
+    envVars:
+      # --- Core app -------------------------------------------------------
+      - key: APP_NAME
+        value: "Prestige Auto"
+      - key: APP_ENV
+        value: production
+      # Secret: generate locally with `php artisan key:generate --show`
+      # and paste the full base64:... value in the Render dashboard.
+      - key: APP_KEY
+        sync: false
+      - key: APP_DEBUG
+        value: "false"
+      # Set to this service's own https URL after the first deploy
+      # (e.g. https://prestige-auto-api.onrender.com), then redeploy.
+      - key: APP_URL
+        sync: false
+
+      # --- Logging (stream to Render's log viewer) ------------------------
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: LOG_LEVEL
+        value: error
+
+      # --- Database (wired automatically from the Postgres instance) ------
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_URL
+        fromDatabase:
+          name: prestige-auto-db
+          property: connectionString
+
+      # --- Sessions / cache / queue (no extra infrastructure) -------------
+      - key: SESSION_DRIVER
+        value: cookie
+      - key: SESSION_LIFETIME
+        value: "120"
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: sync
+
+      # Empty: the SPA uses pure Sanctum bearer-token auth (no cookies).
+      - key: SANCTUM_STATEFUL_DOMAINS
+        value: ""
+
+      # --- Filesystem / media --------------------------------------------
+      - key: FILESYSTEM_DISK
+        value: public
+      # Secret: cloudinary://API_KEY:API_SECRET@CLOUD_NAME
+      - key: CLOUDINARY_URL
+        sync: false
+
+      # --- CORS / frontend ------------------------------------------------
+      # Set to the deployed Vercel URL (no trailing slash) after that deploy.
+      - key: FRONTEND_URL
+        sync: false
+
+      # --- Mail (log driver — no SMTP provider needed) --------------------
+      - key: MAIL_MAILER
+        value: log
+      - key: MAIL_FROM_ADDRESS
+        value: "hello@prestige-auto.test"
+      - key: MAIL_FROM_NAME
+        value: "Prestige Auto"
+
+      # --- One-time seeding ----------------------------------------------
+      # Leave unset normally. Set to "true" in the dashboard for the FIRST
+      # deploy only (seeds demo data), then clear it so later deploys don't
+      # duplicate rows. The seeder uses create(), not updateOrCreate().
+      - key: RUN_SEED
+        sync: false
