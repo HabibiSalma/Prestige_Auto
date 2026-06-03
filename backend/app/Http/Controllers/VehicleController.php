@@ -12,6 +12,7 @@ use App\Support\CloudinaryStorage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * VehicleController — public catalogue + staff-only CRUD.
@@ -205,7 +206,7 @@ class VehicleController extends Controller
         $existing = $vehicle->images()->count();
 
         foreach ($request->file('images') as $i => $file) {
-            $path = $file->store('vehicles', 'public');
+            $path = CloudinaryStorage::store($file, 'vehicles');
             VehicleImage::create([
                 'vehicle_id' => $vehicle->id,
                 'image_path' => $path,
@@ -282,7 +283,8 @@ class VehicleController extends Controller
      */
     private function assertCanManage(Vehicle $vehicle): void
     {
-        $user = auth()->user();
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
 
         if ($user && $user->isGestionnaire()
             && $vehicle->agency_id !== $user->agency_id) {
