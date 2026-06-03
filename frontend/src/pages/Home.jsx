@@ -31,9 +31,9 @@ export default function Home() {
         <div className="container py-5">
           <div className="row align-items-center" style={{ minHeight: '480px' }}>
             <div className="col-lg-7">
-              <span className="badge px-3 py-2 mb-3" style={{ background: 'rgba(201,168,76,.15)', color: 'var(--gold)' }}>
+              {/* <span className="badge px-3 py-2 mb-3" style={{ background: 'rgba(201,168,76,.15)', color: 'var(--gold)' }}>
                 <i className="bi bi-stars me-1" /> Édition Sportives & Luxe
-              </span>
+              </span> */}
               <h1 className="display-3 fw-bold lh-1 mb-3">
                 Roulez en <span style={{ color: 'var(--gold)' }}>légende.</span><br />
                 Louez en <span style={{ color: 'var(--gold)' }}>quelques clics.</span>
