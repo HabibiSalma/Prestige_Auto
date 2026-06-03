@@ -69,7 +69,7 @@ export default function Users() {
                 <tr key={u.id}>
                   <td>
                     <div className="d-flex align-items-center gap-2">
-                      {/* <Avatar name={u.name} size={32} /> */}
+                      <Avatar name={u.name} src={u.avatar_url} size={32} />
                       <div>
                         <div className="fw-semibold">{u.name}</div>
                         <small className="text-muted">{u.phone}</small>
