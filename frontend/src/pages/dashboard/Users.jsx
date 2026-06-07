@@ -25,6 +25,10 @@ export default function Users() {
 
   /** Apply a role change. Sends both role and (when needed) agency. */
   async function changeRole(u, role, agency_id) {
+    // A gestionnaire MUST be tied to an agency (backend required_if rule).
+    // When promoting from a role that had none, fall back to the first
+    // agency so the request validates; the owner can refine it after.
+    if (role === 'gestionnaire' && !agency_id) agency_id = agencies[0]?.id ?? null
     const payload = { role, agency_id: role === 'gestionnaire' ? agency_id : null }
     const updated = await updateUserRole(u.id, payload)
     setUsers((arr) => arr.map((x) => (x.id === u.id ? updated : x)))
